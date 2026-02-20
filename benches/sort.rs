@@ -30,6 +30,7 @@ async fn setup() -> SortStuff {
             label: None,
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
         })
         .await
         .unwrap();
@@ -78,7 +79,10 @@ async fn sort(
     let idx = context.queue.submit([encoder.finish()]);
     context
         .device
-        .poll(wgpu::PollType::WaitForSubmissionIndex(idx))
+        .poll(wgpu::PollType::Wait {
+            submission_index: Some(idx),
+            timeout: None,
+        })
         .unwrap();
 
     let timestamps: Vec<u64> = pollster::block_on(download_buffer(

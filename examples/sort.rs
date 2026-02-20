@@ -21,6 +21,7 @@ async fn main() {
             label: None,
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
         })
         .await
         .unwrap();
@@ -67,7 +68,10 @@ async fn main() {
     // wait for sorter to finish
     let idx = queue.submit([encoder.finish()]);
     device
-        .poll(wgpu::PollType::WaitForSubmissionIndex(idx))
+        .poll(wgpu::PollType::Wait {
+            submission_index: Some(idx),
+            timeout: None,
+        })
         .unwrap();
 
     // keys buffer has padding at the end

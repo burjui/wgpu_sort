@@ -74,6 +74,7 @@ async fn setup() -> (wgpu::Device, wgpu::Queue) {
             label: None,
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
         })
         .await
         .unwrap();
@@ -182,7 +183,10 @@ where
 
     let idx = queue.submit([encoder.finish()]);
     device
-        .poll(wgpu::PollType::WaitForSubmissionIndex(idx))
+        .poll(wgpu::PollType::Wait {
+            submission_index: Some(idx),
+            timeout: None,
+        })
         .unwrap();
 
     let keys_sorted_gpu = download_buffer::<T>(
